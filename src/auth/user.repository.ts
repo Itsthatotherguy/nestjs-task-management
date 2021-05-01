@@ -14,10 +14,11 @@ export class UserRepository extends Repository<User> {
 
         const salt = await bcrypt.genSalt();
 
-        const user = this.create();
-        user.username = username;
-        user.salt = await bcrypt.genSalt();
-        user.password = await this.hashPassword(password, salt);
+        const user = this.create({
+            username,
+            salt,
+            password: await this.hashPassword(password, salt),
+        });
 
         try {
             await user.save();
@@ -38,7 +39,7 @@ export class UserRepository extends Repository<User> {
 
         const user = await this.findOne({ username });
 
-        if (user && user.validatePassword(password)) {
+        if (user && (await user.validatePassword(password))) {
             return user.username;
         } else {
             return null;
